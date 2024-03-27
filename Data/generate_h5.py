@@ -173,20 +173,19 @@ def to_slice(deface, seg, model=None):
 def train_data_generator(dataset_path='E:\\data\\ATLAS_R1.1'):
     h5_path = 'ATLAS.h5'
     if not os.path.exists(h5_path):
-        deface, seg = get_data([0, 654], dataset_path=dataset_path)
+        deface, seg = get_data([0, 65], dataset_path=dataset_path)
         deface = np.array(deface)
         deface_slice_train, seg_slice_train = to_slice(deface[:], seg[:], 'all')
 
         print('generating h5 file for ATLAS dataset')
-        file_train = h5py.File(os.path.join(dataset_path, 'train.h5'), 'w')
-        file_train.create_dataset('data', data=deface_slice_train)
-        file_train.create_dataset('label', data=seg_slice_train)
-        file_train.close()
+        with h5py.File('train66.h5', 'w') as file_train:
+            file_train.create_dataset('data', data=deface_slice_train)
+            file_train.create_dataset('label', data=seg_slice_train)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset-path', default='E:\\data\\ATLAS_R1.1', type=str,
-                        help='path of ATLAS_R1.1')
+    parser.add_argument('--dataset-path', default='ATLAS_R2.0/ATLAS_2', type=str,
+                        help='path of ATLAS_R2.0')
     args = parser.parse_args()
     train_data_generator(dataset_path=args.dataset_path)
