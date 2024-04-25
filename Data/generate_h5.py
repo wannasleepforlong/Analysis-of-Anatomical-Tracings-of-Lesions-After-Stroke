@@ -7,6 +7,8 @@ from tqdm import tqdm
 import h5py
 import argparse
 
+import random
+
 
 class CSV:  # Done
     def __init__(self, path, del_rows=None, del_cols=None):
@@ -125,7 +127,7 @@ def get_data(num=None,
     return deface, seg
 
 
-def to_slice(deface, seg, model=None):
+def to_slice(deface, seg, model=None, num_slices=189):
     deface_slice = []
     seg_slice = []
     pos_deface = []
@@ -133,21 +135,24 @@ def to_slice(deface, seg, model=None):
     pos_seg = []
     neg_seg = []
     for c1, i in enumerate(seg):
+        random_slice_index = set(random.sample(list(range(20, 160)), num_slices))
         for c2, k in enumerate(i):
-            if model == 'pos':
-                if np.sum(k) != 0:
+            if k in random_slice_index:
+                # This should give us a random sample of 50 slices thus reducing data for individual
+                if model == 'pos':
+                    if np.sum(k) != 0:
+                        deface_slice.append(deface[c1][c2])
+                        seg_slice.append(seg[c1][c2])
+                elif model == 'all':
                     deface_slice.append(deface[c1][c2])
                     seg_slice.append(seg[c1][c2])
-            elif model == 'all':
-                deface_slice.append(deface[c1][c2])
-                seg_slice.append(seg[c1][c2])
-            else:
-                if np.sum(k) != 0:
-                    pos_deface.append(deface[c1][c2])
-                    pos_seg.append(seg[c1][c2])
                 else:
-                    neg_deface.append(deface[c1][c2])
-                    neg_seg.append(seg[c1][c2])
+                    if np.sum(k) != 0:
+                        pos_deface.append(deface[c1][c2])
+                        pos_seg.append(seg[c1][c2])
+                    else:
+                        neg_deface.append(deface[c1][c2])
+                        neg_seg.append(seg[c1][c2])
     if model != 'pos' and model != 'all':
         index = np.arange(len(neg_deface))
         np.random.shuffle(index)
@@ -173,12 +178,12 @@ def to_slice(deface, seg, model=None):
 def train_data_generator(dataset_path='E:\\data\\ATLAS_R1.1'):
     h5_path = 'ATLAS.h5'
     if not os.path.exists(h5_path):
-        deface, seg = get_data([0, 65], dataset_path=dataset_path)
+        deface, seg = get_data([0, 199], dataset_path=dataset_path)
         deface = np.array(deface)
-        deface_slice_train, seg_slice_train = to_slice(deface[:], seg[:], 'all')
+        deface_slice_train, seg_slice_train = to_slice(deface[:], seg[:], 'all', num_slices=50)
 
         print('generating h5 file for ATLAS dataset')
-        with h5py.File('train66.h5', 'w') as file_train:
+        with h5py.File('train200-50.h5', 'w') as file_train:
             file_train.create_dataset('data', data=deface_slice_train)
             file_train.create_dataset('label', data=seg_slice_train)
 
