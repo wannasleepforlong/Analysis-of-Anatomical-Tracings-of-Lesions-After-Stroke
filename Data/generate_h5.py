@@ -135,9 +135,8 @@ def to_slice(deface, seg, model=None, num_slices=189):
     pos_seg = []
     neg_seg = []
     for c1, i in enumerate(seg):
-        random_slice_index = set(random.sample(list(range(20, 160)), num_slices))
         for c2, k in enumerate(i):
-            if k in random_slice_index:
+            if c2 % 3 == 0:
                 # This should give us a random sample of 50 slices thus reducing data for individual
                 if model == 'pos':
                     if np.sum(k) != 0:
